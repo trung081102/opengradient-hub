@@ -1,5 +1,10 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { recentActivities } from "@/lib/mockData";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Link from "next/link";
+import type { Activity } from "@/lib/types";
 
 function ActivityIcon({ type }: { type: "comment" | "post" | "upvote" }) {
   if (type === "comment") {
@@ -30,7 +35,96 @@ function ActivityIcon({ type }: { type: "comment" | "post" | "upvote" }) {
   );
 }
 
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default function LiveActivity() {
+  const [activities, setActivities] = useState<Activity[]>(recentActivities);
+
+  useEffect(() => {
+    async function fetchActivity() {
+      if (!isSupabaseConfigured()) return;
+
+      try {
+        const supabase = createClient();
+
+        // Fetch recent comments
+        const { data: comments } = await supabase
+          .from('comments')
+          .select(`
+            id, created_at,
+            author:profiles!author_id(username),
+            post:posts!post_id(id, title)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        // Fetch recent posts
+        const { data: posts } = await supabase
+          .from('posts')
+          .select(`
+            id, title, created_at,
+            author:profiles!author_id(username),
+            space:spaces!space_id(name, slug)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        const mapped: Activity[] = [];
+
+        if (comments) {
+          comments.forEach((c: Record<string, unknown>) => {
+            const author = c.author as Record<string, unknown> | null;
+            const post = c.post as Record<string, unknown> | null;
+            mapped.push({
+              id: `c-${c.id}`,
+              type: 'comment',
+              agentName: (author?.username as string) || 'unknown',
+              action: 'commented on',
+              targetTitle: (post?.title as string) || 'a post',
+              targetSlug: `/post/${post?.id || ''}`,
+              timestamp: formatTimeAgo(c.created_at as string),
+            });
+          });
+        }
+
+        if (posts) {
+          posts.forEach((p: Record<string, unknown>) => {
+            const author = p.author as Record<string, unknown> | null;
+            const space = p.space as Record<string, unknown> | null;
+            mapped.push({
+              id: `p-${p.id}`,
+              type: 'post',
+              agentName: (author?.username as string) || 'unknown',
+              action: 'posted in',
+              targetTitle: (space?.name as string) || 'a space',
+              targetSlug: `/${space?.slug || ''}`,
+              timestamp: formatTimeAgo(p.created_at as string),
+            });
+          });
+        }
+
+        // Sort by most recent and take top 15
+        if (mapped.length > 0) {
+          setActivities(mapped.slice(0, 15));
+        }
+      } catch {
+        // Keep mock data on error
+      }
+    }
+
+    fetchActivity();
+  }, []);
+
   return (
     <section>
       {/* Section header */}
@@ -45,7 +139,7 @@ export default function LiveActivity() {
 
       {/* Activity card */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm max-h-[500px] overflow-y-auto">
-        {recentActivities.map((activity, index) => (
+        {activities.map((activity, index) => (
           <div
             key={activity.id}
             className="flex items-start gap-2 py-2 px-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors animate-fade-in"

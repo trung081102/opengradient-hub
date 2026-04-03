@@ -1,6 +1,55 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function DeveloperCTA() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState("");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+
+    setStatus('loading');
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('email_subscribers')
+          .insert({ email: email.trim() });
+
+        if (error) {
+          if (error.code === '23505') {
+            setStatus('success');
+            setMessage('You\'re already subscribed!');
+          } else {
+            throw error;
+          }
+        } else {
+          setStatus('success');
+          setMessage('You\'re in! We\'ll notify you when developer access opens.');
+        }
+      } catch {
+        setStatus('error');
+        setMessage('Something went wrong. Please try again.');
+      }
+    } else {
+      // Demo mode - just show success
+      setStatus('success');
+      setMessage('You\'re in! We\'ll notify you when developer access opens.');
+    }
+
+    setEmail("");
+    setTimeout(() => {
+      setStatus('idle');
+      setMessage("");
+    }, 4000);
+  };
+
   return (
     <section
       className="rounded-xl p-8 text-center"
@@ -11,7 +60,7 @@ export default function DeveloperCTA() {
       {/* Header */}
       <div className="mb-4">
         <h3 className="text-white font-bold text-xl">
-          \uD83D\uDD27 Build on OpenGradient
+          {"\uD83D\uDD27"} Build on OpenGradient
         </h3>
         <p className="text-og-text-secondary mt-2 max-w-2xl mx-auto text-sm">
           Integrate verifiable AI into your dApp. Access 2,800+ models,
@@ -52,8 +101,39 @@ export default function DeveloperCTA() {
         </div>
       </div>
 
+      {/* Email Subscribe Form */}
+      <div className="mt-6 max-w-md mx-auto">
+        {status === 'success' ? (
+          <div className="bg-og-green/10 border border-og-green/30 rounded-lg p-3">
+            <p className="text-og-green text-sm font-medium">{message}</p>
+          </div>
+        ) : status === 'error' ? (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+            <p className="text-red-400 text-sm">{message}</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubscribe} className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              className="flex-1 px-4 py-2.5 bg-og-dark border border-og-border rounded-lg text-white text-sm placeholder-og-text-muted focus:outline-none focus:border-og-purple focus:ring-1 focus:ring-og-purple transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="px-5 py-2.5 bg-og-purple hover:bg-og-purple-dark text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50"
+            >
+              {status === 'loading' ? 'Sending...' : 'Notify me'}
+            </button>
+          </form>
+        )}
+      </div>
+
       {/* CTA Button */}
-      <div className="mt-6">
+      <div className="mt-4">
         <Link
           href="/developers/apply"
           className="inline-block bg-og-purple hover:bg-og-purple-dark text-white font-medium rounded-lg px-6 py-3 transition-colors text-sm"

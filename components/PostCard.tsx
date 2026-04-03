@@ -3,24 +3,43 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Post } from "@/lib/types";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useVotes } from "@/lib/hooks/useVotes";
 
 interface PostCardProps {
   post: Post;
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
+  const { user } = useAuth();
+  const { userVotes, vote } = useVotes();
+  const [localVote, setLocalVote] = useState<'up' | 'down' | null>(null);
+
+  const postKey = `post:${post.id}`;
+  const supabaseVote = userVotes[postKey];
+
+  // Use Supabase vote if available, otherwise use local state
+  const effectiveVote = supabaseVote !== undefined
+    ? (supabaseVote === 1 ? 'up' : supabaseVote === -1 ? 'down' : null)
+    : localVote;
 
   const baseScore = post.upvotes - post.downvotes;
   const score =
-    voteState === 'up'
+    effectiveVote === 'up'
       ? baseScore + 1
-      : voteState === 'down'
+      : effectiveVote === 'down'
         ? baseScore - 1
         : baseScore;
 
-  function handleVote(direction: 'up' | 'down') {
-    setVoteState((prev) => (prev === direction ? null : direction));
+  async function handleVote(direction: 'up' | 'down') {
+    if (user) {
+      // Use Supabase voting
+      const voteType = direction === 'up' ? 1 : -1;
+      await vote(voteType as 1 | -1, post.id);
+    } else {
+      // Local-only toggle
+      setLocalVote((prev) => (prev === direction ? null : direction));
+    }
   }
 
   function getRankColor(rank: number): string {
@@ -42,7 +61,7 @@ export default function PostCard({ post }: PostCardProps) {
         <button
           onClick={() => handleVote('up')}
           className={`p-0.5 rounded transition-colors ${
-            voteState === 'up'
+            effectiveVote === 'up'
               ? 'text-og-purple'
               : 'text-gray-400 hover:text-og-purple'
           }`}
@@ -55,9 +74,9 @@ export default function PostCard({ post }: PostCardProps) {
 
         <span
           className={`text-sm font-bold my-1 ${
-            voteState === 'up'
+            effectiveVote === 'up'
               ? 'text-og-purple'
-              : voteState === 'down'
+              : effectiveVote === 'down'
                 ? 'text-og-red'
                 : 'text-gray-700'
           }`}
@@ -68,7 +87,7 @@ export default function PostCard({ post }: PostCardProps) {
         <button
           onClick={() => handleVote('down')}
           className={`p-0.5 rounded transition-colors ${
-            voteState === 'down'
+            effectiveVote === 'down'
               ? 'text-og-red'
               : 'text-gray-400 hover:text-og-red'
           }`}
@@ -134,7 +153,7 @@ export default function PostCard({ post }: PostCardProps) {
             {post.space.slug}
           </Link>
 
-          <span className="text-gray-300">\u00B7</span>
+          <span className="text-gray-300">{"\u00B7"}</span>
 
           {/* Author avatar + name */}
           <div className="flex items-center gap-1">
@@ -152,16 +171,18 @@ export default function PostCard({ post }: PostCardProps) {
             </Link>
           </div>
 
-          <span className="text-gray-300">\u00B7</span>
+          <span className="text-gray-300">{"\u00B7"}</span>
 
           {/* Timestamp */}
           <span className="text-og-text-muted">{post.createdAt}</span>
         </div>
 
-        {/* Title */}
-        <h3 className="font-semibold text-base text-gray-900 hover:text-og-purple cursor-pointer transition-colors leading-snug mb-1">
-          {post.title}
-        </h3>
+        {/* Title - linked to post detail */}
+        <Link href={`/post/${post.id}`}>
+          <h3 className="font-semibold text-base text-gray-900 hover:text-og-purple cursor-pointer transition-colors leading-snug mb-1">
+            {post.title}
+          </h3>
+        </Link>
 
         {/* Body preview */}
         <p className="text-sm text-gray-600 line-clamp-2 mb-2">
@@ -170,8 +191,11 @@ export default function PostCard({ post }: PostCardProps) {
 
         {/* Bottom row */}
         <div className="flex items-center gap-3 text-xs">
-          {/* Comment count */}
-          <span className="inline-flex items-center gap-1 text-og-text-muted">
+          {/* Comment count - linked */}
+          <Link
+            href={`/post/${post.id}`}
+            className="inline-flex items-center gap-1 text-og-text-muted hover:text-og-purple transition-colors"
+          >
             <svg
               className="w-3.5 h-3.5"
               fill="none"
@@ -186,13 +210,15 @@ export default function PostCard({ post }: PostCardProps) {
               />
             </svg>
             {post.commentCount} comments
-          </span>
+          </Link>
 
           {/* Activity heat badge */}
-          <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 rounded-full px-2 py-0.5 font-medium">
-            \uD83D\uDD25 {post.recentActivityCount} in{' '}
-            {post.recentActivityWindow}
-          </span>
+          {post.recentActivityCount > 0 && (
+            <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 rounded-full px-2 py-0.5 font-medium">
+              {"\uD83D\uDD25"} {post.recentActivityCount} in{' '}
+              {post.recentActivityWindow}
+            </span>
+          )}
         </div>
 
         {/* Latest comment preview */}

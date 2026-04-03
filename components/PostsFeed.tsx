@@ -1,13 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockPosts } from "@/lib/mockData";
+import { usePosts } from "@/lib/hooks/usePosts";
 import PostCard from "@/components/PostCard";
 
 const SORT_TABS = ["Realtime", "New", "Top", "Discussed", "Random"] as const;
 
 export default function PostsFeed() {
   const [activeTab, setActiveTab] = useState<string>("Realtime");
+  const { posts, loading, fetchPosts } = usePosts();
+
+  useEffect(() => {
+    fetchPosts(undefined, activeTab);
+  }, [activeTab, fetchPosts]);
+
+  // Use fetched posts, fall back to mock data
+  const displayPosts = posts.length > 0 ? posts : mockPosts;
 
   return (
     <section className="max-w-3xl mx-auto">
@@ -61,9 +70,16 @@ export default function PostsFeed() {
         Auto-refreshing every 3s &mdash; showing the 15 most active discussions
       </p>
 
+      {/* Loading state */}
+      {loading && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin w-6 h-6 border-2 border-og-purple border-t-transparent rounded-full" />
+        </div>
+      )}
+
       {/* Posts list */}
       <div className="space-y-3">
-        {mockPosts.map((post) => (
+        {displayPosts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
       </div>
