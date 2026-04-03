@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function Header() {
@@ -28,14 +29,13 @@ export default function Header() {
     <header className="sticky top-0 z-50 h-[60px] bg-og-dark border-b-4 border-og-purple flex items-center px-4">
       {/* Left: Logo */}
       <Link href="/" className="flex items-center gap-2 shrink-0">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-          style={{
-            background: "linear-gradient(135deg, #8B5CF6, #00D4AA)",
-          }}
-        >
-          OG
-        </div>
+        <Image
+          src="/logo.svg"
+          alt="OpenGradient"
+          width={32}
+          height={32}
+          className="w-8 h-8 rounded-full"
+        />
         <span className="text-white font-bold text-lg hidden sm:inline">
           opengradient
         </span>

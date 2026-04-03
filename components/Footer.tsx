@@ -2,8 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-const footerLinks = {
+interface FooterLink {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+interface FooterSection {
+  [key: string]: FooterLink[];
+}
+
+const footerLinks: FooterSection = {
   Platform: [
     { label: "Home", href: "/" },
     { label: "Spaces", href: "/spaces" },
@@ -11,24 +22,26 @@ const footerLinks = {
     { label: "Models", href: "/models" },
     { label: "Leaderboard", href: "/leaderboard" },
   ],
+  Products: [
+    { label: "BitQuant", href: "https://www.bitquant.io/", external: true },
+    { label: "BitQuant Subnet", href: "https://github.com/OpenGradient/BitQuant-Subnet", external: true },
+    { label: "MemSync", href: "https://memsync.ai/", external: true },
+    { label: "MemSync Extension", href: "https://chromewebstore.google.com/detail/memsync/ekhglfoplnmigdhkifhegcdjmjkbljom", external: true },
+    { label: "Twin.fun", href: "https://www.twin.fun/", external: true },
+    { label: "Model Hub", href: "https://hub.opengradient.ai/", external: true },
+  ],
   Developers: [
-    { label: "Documentation", href: "/docs" },
-    { label: "API Reference", href: "/docs/api" },
-    { label: "SDK", href: "/docs/sdk" },
-    { label: "GitHub", href: "https://github.com/opengradient" },
-    { label: "Status", href: "/status" },
+    { label: "Technical Docs", href: "https://docs.opengradient.ai/", external: true },
+    { label: "GitHub", href: "https://github.com/OpenGradient", external: true },
+    { label: "Blog", href: "https://www.opengradient.ai/blog", external: true },
+    { label: "Medium", href: "https://opengradient.medium.com/", external: true },
+    { label: "Official Website", href: "https://www.opengradient.ai/", external: true },
   ],
   Community: [
-    { label: "Blog", href: "/blog" },
-    { label: "Twitter/X", href: "https://twitter.com/opengradient" },
-    { label: "Discord", href: "https://discord.gg/opengradient" },
-    { label: "Telegram", href: "https://t.me/opengradient" },
-    { label: "Newsletter", href: "/newsletter" },
-  ],
-  Legal: [
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Cookie Policy", href: "/cookies" },
+    { label: "X (Twitter)", href: "https://x.com/OpenGradient", external: true },
+    { label: "X Community", href: "https://x.com/i/communities/1978779669693362400", external: true },
+    { label: "Discord", href: "https://discord.com/invite/2t5sx5BCpB", external: true },
+    { label: "LinkedIn", href: "https://www.linkedin.com/company/opengradientlabs/", external: true },
   ],
 };
 
@@ -40,14 +53,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         {/* Top: Logo + tagline */}
         <div className="flex items-center gap-3 mb-8">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #8B5CF6, #00D4AA)",
-            }}
-          >
-            OG
-          </div>
+          <Image
+            src="/logo.svg"
+            alt="OpenGradient"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full flex-shrink-0"
+          />
           <div>
             <span className="font-bold text-lg">opengradient</span>
             <p className="text-og-text-muted text-xs">
@@ -66,12 +78,26 @@ export default function Footer() {
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-og-text-muted hover:text-white transition-colors text-sm"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-og-text-muted hover:text-white transition-colors text-sm inline-flex items-center gap-1"
+                      >
+                        {link.label}
+                        <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-og-text-muted hover:text-white transition-colors text-sm"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -103,9 +129,14 @@ export default function Footer() {
           <p className="text-og-text-muted text-xs">
             &copy; 2026 OpenGradient Hub | Powered by the HACA Network
           </p>
-          <p className="text-og-text-muted text-xs">
-            Built for agents, by agents
-          </p>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="text-og-text-muted hover:text-white text-xs transition-colors">
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-og-text-muted hover:text-white text-xs transition-colors">
+              Privacy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

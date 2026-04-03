@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Hero() {
   const [email, setEmail] = useState("");
@@ -9,64 +10,34 @@ export default function Hero() {
   return (
     <section className="w-full bg-og-dark text-white">
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        {/* Decorative gradient icon with neural network pattern */}
+        {/* Decorative logo with gradient glow */}
         <div className="flex justify-center mb-8">
           <div className="relative">
             {/* Glow effect */}
             <div
-              className="absolute inset-0 rounded-full blur-2xl opacity-40"
+              className="absolute -inset-4 rounded-full blur-3xl opacity-40"
               style={{
                 background:
                   "linear-gradient(135deg, #8B5CF6, #00D4AA)",
-                width: 120,
-                height: 120,
               }}
             />
-            {/* Main circle */}
-            <svg
-              width="120"
-              height="120"
-              viewBox="0 0 120 120"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="relative"
-            >
-              <defs>
-                <linearGradient
-                  id="ogGrad"
-                  x1="0"
-                  y1="0"
-                  x2="120"
-                  y2="120"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#8B5CF6" />
-                  <stop offset="1" stopColor="#00D4AA" />
-                </linearGradient>
-              </defs>
-              <circle cx="60" cy="60" r="58" stroke="url(#ogGrad)" strokeWidth="3" fill="#0A0A0F" />
-              {/* Neural network nodes */}
-              <circle cx="60" cy="30" r="5" fill="#8B5CF6" />
-              <circle cx="35" cy="50" r="4" fill="#A78BFA" />
-              <circle cx="85" cy="50" r="4" fill="#A78BFA" />
-              <circle cx="40" cy="75" r="5" fill="#00D4AA" />
-              <circle cx="80" cy="75" r="5" fill="#00D4AA" />
-              <circle cx="60" cy="60" r="6" fill="url(#ogGrad)" />
-              <circle cx="60" cy="90" r="4" fill="#2EE6C0" />
-              {/* Neural network connections */}
-              <line x1="60" y1="30" x2="35" y2="50" stroke="#8B5CF6" strokeWidth="1" opacity="0.6" />
-              <line x1="60" y1="30" x2="85" y2="50" stroke="#8B5CF6" strokeWidth="1" opacity="0.6" />
-              <line x1="60" y1="30" x2="60" y2="60" stroke="#A78BFA" strokeWidth="1" opacity="0.5" />
-              <line x1="35" y1="50" x2="60" y2="60" stroke="#A78BFA" strokeWidth="1" opacity="0.5" />
-              <line x1="85" y1="50" x2="60" y2="60" stroke="#A78BFA" strokeWidth="1" opacity="0.5" />
-              <line x1="35" y1="50" x2="40" y2="75" stroke="#00D4AA" strokeWidth="1" opacity="0.5" />
-              <line x1="85" y1="50" x2="80" y2="75" stroke="#00D4AA" strokeWidth="1" opacity="0.5" />
-              <line x1="60" y1="60" x2="40" y2="75" stroke="#00D4AA" strokeWidth="1" opacity="0.6" />
-              <line x1="60" y1="60" x2="80" y2="75" stroke="#00D4AA" strokeWidth="1" opacity="0.6" />
-              <line x1="40" y1="75" x2="60" y2="90" stroke="#2EE6C0" strokeWidth="1" opacity="0.5" />
-              <line x1="80" y1="75" x2="60" y2="90" stroke="#2EE6C0" strokeWidth="1" opacity="0.5" />
-              <line x1="60" y1="60" x2="60" y2="90" stroke="#2EE6C0" strokeWidth="1" opacity="0.4" />
-            </svg>
+            {/* Secondary glow ring */}
+            <div
+              className="absolute -inset-2 rounded-full blur-xl opacity-25"
+              style={{
+                background:
+                  "linear-gradient(135deg, #A78BFA, #2EE6C0)",
+              }}
+            />
+            {/* Logo */}
+            <Image
+              src="/logo.svg"
+              alt="OpenGradient"
+              width={96}
+              height={96}
+              className="relative w-24 h-24 rounded-full drop-shadow-[0_0_20px_rgba(139,92,246,0.5)]"
+              priority
+            />
           </div>
         </div>
 
